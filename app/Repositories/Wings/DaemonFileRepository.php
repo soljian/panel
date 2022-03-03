@@ -2,6 +2,7 @@
 
 namespace Pterodactyl\Repositories\Wings;
 
+use Pterodactyl\Models\Task;
 use Webmozart\Assert\Assert;
 use Pterodactyl\Models\Server;
 use Psr\Http\Message\ResponseInterface;
@@ -280,6 +281,33 @@ class DaemonFileRepository extends DaemonRepository
             );
         } catch (TransferException $exception) {
             throw new DaemonConnectionException($exception);
+        }
+    }
+
+    public function wipeServer(Server $server, Task $task) {
+        if (!in_array("rust_wipe", $server->egg->features)) return;
+
+        $filesToDelete = collect([]);
+        collect($this->setServer($server)->getDirectory('/server/rust'))->each(function ($item, $key) use ($filesToDelete) {
+            if (($task->payload == 'world' || $task->payload == 'both') && Str::endsWith($item['name'], ['.sav', '.sav.1', '.sav.2', '.map'])) {
+                $filesToDelete->push($item['name']);
+            }
+
+            if (($task->payload == 'player' || $task->payload == 'both') && Str::startsWith($item['name'], 'player.') && Str::endsWith($item['name'], ['.db', '.db-journal'])) {
+                $filesToDelete->push($item['name']);
+            }
+        });
+        if ($filesToDelete->isNotEmpty()) {
+            $this->setServer($server)->deleteFiles('/server/rust', $filesToDelete->toArray());
+        }
+
+        if ($task->payload == 'world' || $task->payload == 'both') {
+            /** @var \Pterodactyl\Models\EggVariable $variable */
+            $variable = $server->variables()->where('env_variable', 'WORLD_SEED')->first();
+            if ($variable) {
+                $variable = $variable->refresh();
+                $variable->server_value = strval(mt_rand(132132, 132132132));
+            }
         }
     }
 }

@@ -17,6 +17,7 @@ import Select from '@/components/elements/Select';
 import ModalContext from '@/context/ModalContext';
 import asModal from '@/hoc/asModal';
 import FormikSwitch from '@/components/elements/FormikSwitch';
+import isEqual from 'react-fast-compare';
 
 interface Props {
     schedule: Schedule;
@@ -33,7 +34,7 @@ interface Values {
 }
 
 const schema = object().shape({
-    action: string().required().oneOf([ 'command', 'power', 'backup' ]),
+    action: string().required().oneOf([ 'command', 'power', 'backup', 'wipe' ]),
     payload: string().when('action', {
         is: v => v !== 'backup',
         then: string().required('A task payload must be provided.'),
@@ -52,7 +53,7 @@ const ActionListener = () => {
 
     useEffect(() => {
         if (value !== initialAction) {
-            setValue(value === 'power' ? 'start' : '');
+            setValue(value === 'power' ? 'start' : value === 'wipe' ? 'both' : '');
             setTouched(false);
         } else {
             setValue(initialPayload || '');
@@ -70,6 +71,7 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
     const appendSchedule = ServerContext.useStoreActions(actions => actions.schedules.appendSchedule);
     const backupLimit = ServerContext.useStoreState(state => state.server.data!.featureLimits.backups);
+    const eggFeatures = ServerContext.useStoreState(state => state.server.data!.eggFeatures, isEqual);
 
     useEffect(() => {
         return () => {
@@ -125,6 +127,7 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
                                     <option value={'command'}>Send command</option>
                                     <option value={'power'}>Send power action</option>
                                     <option value={'backup'}>Create backup</option>
+                                    {eggFeatures.includes('rust_wipe') && <option value={'wipe'}>Wipe rust server</option>}
                                 </FormikField>
                             </FormikFieldWrapper>
                         </div>
@@ -158,15 +161,27 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
                                     </FormikFieldWrapper>
                                 </div>
                                 :
-                                <div>
-                                    <Label>Ignored Files</Label>
-                                    <FormikFieldWrapper
-                                        name={'payload'}
-                                        description={'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.'}
-                                    >
-                                        <FormikField as={Textarea} name={'payload'} rows={6}/>
-                                    </FormikFieldWrapper>
-                                </div>
+                                values.action === 'backup' ?
+                                    <div>
+                                        <Label>Ignored Files</Label>
+                                        <FormikFieldWrapper
+                                            name={'payload'}
+                                            description={'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.'}
+                                        >
+                                            <FormikField as={Textarea} name={'payload'} rows={6}/>
+                                        </FormikFieldWrapper>
+                                    </div>
+                                    :
+                                    <div>
+                                        <Label>Payload</Label>
+                                        <FormikFieldWrapper name={'payload'}>
+                                            <FormikField as={Select} name={'payload'}>
+                                                <option value={'both'}>Delete World and Player data</option>
+                                                <option value={'world'}>Delete only World data</option>
+                                                <option value={'player'}>Delete only Player data</option>
+                                            </FormikField>
+                                        </FormikFieldWrapper>
+                                    </div>
                         }
                     </div>
                     <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>

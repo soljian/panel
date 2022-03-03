@@ -34,6 +34,8 @@ const getActionDetails = (action: string): [ string, any ] => {
             return [ 'Send Power Action', faToggleOn ];
         case 'backup':
             return [ 'Create Backup', faFileArchive ];
+        case 'wipe':
+            return [ 'Rust Wipe', faTrashAlt ];
         default:
             return [ 'Unknown Action', faCode ];
     }
