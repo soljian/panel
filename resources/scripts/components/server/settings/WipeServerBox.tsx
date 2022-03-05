@@ -8,8 +8,10 @@ import { ApplicationStore } from '@/state';
 import { httpErrorToHuman } from '@/api/http';
 import tw from 'twin.macro';
 import Button from '@/components/elements/Button';
-import Switch from '@/components/elements/Switch';
 import { PowerAction } from '@/components/server/ServerConsole';
+import { Textarea } from '@/components/elements/Input';
+import Label from '@/components/elements/Label';
+import { debounce } from 'debounce';
 
 export default () => {
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
@@ -18,9 +20,12 @@ export default () => {
     const [ modalVisible, setModalVisible ] = useState(false);
     const { addFlash, clearFlashes } = useStoreActions((actions: Actions<ApplicationStore>) => actions.flashes);
 
-    const [ shouldRegenSeed, setRegenSeed ] = useState(true);
-    const [ shouldDeleteWorld, setDeleteWorld ] = useState(true);
-    const [ shouldDeletePlayerData, setDeletePlayerData ] = useState(false);
+    const currentPathList = ServerContext.useStoreState(state => state.server.data!.variables).filter(v => v.envVariable === 'WIPE_PATH_LIST')[0].serverValue;
+    const [ pathList, setPathList ] = useState(currentPathList.split(',').join('\n') ?? '');
+
+    const setPathListValue = debounce((value: string) => {
+        setPathList(value);
+    }, 500);
 
     const sendPowerCommand = (command: PowerAction) => {
         instance && instance.send('set state', command);
@@ -30,10 +35,10 @@ export default () => {
         clearFlashes('settings');
         setIsSubmitting(true);
 
-        sendPowerCommand('stop');
+        sendPowerCommand('kill');
 
         setTimeout(() => {
-            wipeServer(uuid, shouldRegenSeed, shouldDeleteWorld, shouldDeletePlayerData)
+            wipeServer(uuid, pathList.split('\n'))
                 .then(() => {
                     addFlash({
                         key: 'settings',
@@ -50,7 +55,7 @@ export default () => {
                     setIsSubmitting(false);
                     setModalVisible(false);
                 });
-        }, 3000);
+        }, 1000);
     };
 
     useEffect(() => {
@@ -58,7 +63,7 @@ export default () => {
     }, []);
 
     return (
-        <TitledGreyBox title={'Wipe Rust Server'} css={tw`relative`}>
+        <TitledGreyBox title={'Wipe file saves'} css={tw`relative`}>
             <ConfirmationModal
                 title={'Confirm server wipe'}
                 buttonText={'Yes, wipe server'}
@@ -68,31 +73,19 @@ export default () => {
                 onModalDismissed={() => setModalVisible(false)}
             >
                 <p>Your server will be stopped and the selected data will be deleted, are you sure you wish to continue?</p>
-                <p><b>This will only work for Rust servers!</b></p>
             </ConfirmationModal>
-            <Switch
-                name="shouldRegenSeed"
-                label="Regenerate Seed"
-                onChange={() => setRegenSeed(s => !s)}
-                defaultChecked={shouldRegenSeed}
-            />
-            <div css={tw`mt-2 flex items-center w-full md:w-auto`}>
-                <div>
-                    <Switch
-                        name="shouldDeleteWorld"
-                        label="Delete World"
-                        onChange={() => setDeleteWorld(s => !s)}
-                        defaultChecked={shouldDeleteWorld}
-                    />
-                </div>
-                <div css={tw`ml-4`}>
-                    <Switch
-                        name="shouldDeletePlayerData"
-                        label="Delete Player Data"
-                        onChange={() => setDeletePlayerData(s => !s)}
-                        defaultChecked={shouldDeletePlayerData}
-                    />
-                </div>
+            <div css={tw`mt-6`}>
+                <Label>List of paths</Label>
+                <Textarea
+                    name="pathList"
+                    title="List of paths"
+                    defaultValue={pathList}
+                    placeholder={'/folder1\n/folder2'}
+                    onKeyUp={e => {
+                        setPathListValue(e.currentTarget.value);
+                    }}
+                    rows={6}
+                />
             </div>
             <div css={tw`mt-6 text-right`}>
                 <Button

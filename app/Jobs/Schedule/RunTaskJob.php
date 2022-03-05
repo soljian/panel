@@ -16,6 +16,8 @@ use Pterodactyl\Services\Backups\InitiateBackupService;
 use Pterodactyl\Repositories\Wings\DaemonPowerRepository;
 use Pterodactyl\Repositories\Wings\DaemonCommandRepository;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class RunTaskJob extends Job implements ShouldQueue
 {
@@ -76,7 +78,7 @@ class RunTaskJob extends Job implements ShouldQueue
                     $backupService->setIgnoredFiles(explode(PHP_EOL, $this->task->payload))->handle($server, null, true);
                     break;
                 case Task::ACTION_WIPE:
-                    $fileRepository->wipeServer($server, $this->task);
+                    $fileRepository->wipeServer($server, $this->task, explode(PHP_EOL, $this->task->payload));
                     break;
                 default:
                     throw new InvalidArgumentException('Invalid task action provided: ' . $this->task->action);

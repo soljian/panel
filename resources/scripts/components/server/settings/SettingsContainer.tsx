@@ -95,7 +95,9 @@ export default () => {
                         </div>
                     </Can>
                     <Can action={'settings.reinstall'}>
-                        {eggFeatures.includes('rust_wipe') && <WipeServerBox/>}
+                        <div css={tw`mb-6 md:mb-10`}>
+                            <WipeServerBox/>
+                        </div>
                     </Can>
                 </div>
             </div>

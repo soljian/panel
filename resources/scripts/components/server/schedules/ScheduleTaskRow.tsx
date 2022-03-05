@@ -35,7 +35,7 @@ const getActionDetails = (action: string): [ string, any ] => {
         case 'backup':
             return [ 'Create Backup', faFileArchive ];
         case 'wipe':
-            return [ 'Rust Wipe', faTrashAlt ];
+            return [ 'Wipe server saves', faTrashAlt ];
         default:
             return [ 'Unknown Action', faCode ];
     }

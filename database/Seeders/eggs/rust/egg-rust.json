@@ -9,8 +9,7 @@
     "author": "support@pterodactyl.io",
     "description": "The only aim in Rust is to survive. To do this you will need to overcome struggles such as hunger, thirst and cold. Build a fire. Build a shelter. Kill animals for meat. Protect yourself from other players, and kill them for meat. Create alliances with other players and form a town. Do whatever it takes to survive.",
     "features": [
-        "steam_disk_space",
-        "rust_wipe"
+        "steam_disk_space"
     ],
     "images": [
         "quay.io\/pterodactyl\/core:rust"
@@ -174,6 +173,15 @@
             "user_viewable": true,
             "user_editable": true,
             "rules": "nullable|url"
+        },
+        {
+            "name": "Wipe path list",
+            "description": "The list of path you want to delete when wiping the server",
+            "env_variable": "WIPE_PATH_LIST",
+            "default_value": "\/server\/rust\/*.db,\/server\/rust\/*.db-journal,\/server\/rust\/*.map,\/server\/rust\/*.sav,\/server\/rust\/*.sav.1,\/server\/rust\/*.sav.2",
+            "user_viewable": true,
+            "user_editable": true,
+            "rules": "string"
         }
     ]
 }

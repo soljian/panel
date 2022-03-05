@@ -53,7 +53,7 @@ const ActionListener = () => {
 
     useEffect(() => {
         if (value !== initialAction) {
-            setValue(value === 'power' ? 'start' : value === 'wipe' ? 'both' : '');
+            setValue(value === 'power' ? 'start' : '');
             setTouched(false);
         } else {
             setValue(initialPayload || '');
@@ -127,7 +127,7 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
                                     <option value={'command'}>Send command</option>
                                     <option value={'power'}>Send power action</option>
                                     <option value={'backup'}>Create backup</option>
-                                    {eggFeatures.includes('rust_wipe') && <option value={'wipe'}>Wipe rust server</option>}
+                                    <option value={'wipe'}>Wipe file saves</option>
                                 </FormikField>
                             </FormikFieldWrapper>
                         </div>
@@ -140,48 +140,48 @@ const TaskDetailsModal = ({ schedule, task }: Props) => {
                         </div>
                     </div>
                     <div css={tw`mt-6`}>
-                        {values.action === 'command' ?
+                        {values.action === 'command' &&
                             <div>
                                 <Label>Payload</Label>
                                 <FormikFieldWrapper name={'payload'}>
                                     <FormikField as={Textarea} name={'payload'} rows={6}/>
                                 </FormikFieldWrapper>
                             </div>
-                            :
-                            values.action === 'power' ?
-                                <div>
-                                    <Label>Payload</Label>
-                                    <FormikFieldWrapper name={'payload'}>
-                                        <FormikField as={Select} name={'payload'}>
-                                            <option value={'start'}>Start the server</option>
-                                            <option value={'restart'}>Restart the server</option>
-                                            <option value={'stop'}>Stop the server</option>
-                                            <option value={'kill'}>Terminate the server</option>
-                                        </FormikField>
-                                    </FormikFieldWrapper>
-                                </div>
-                                :
-                                values.action === 'backup' ?
-                                    <div>
-                                        <Label>Ignored Files</Label>
-                                        <FormikFieldWrapper
-                                            name={'payload'}
-                                            description={'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.'}
-                                        >
-                                            <FormikField as={Textarea} name={'payload'} rows={6}/>
-                                        </FormikFieldWrapper>
-                                    </div>
-                                    :
-                                    <div>
-                                        <Label>Payload</Label>
-                                        <FormikFieldWrapper name={'payload'}>
-                                            <FormikField as={Select} name={'payload'}>
-                                                <option value={'both'}>Delete World and Player data</option>
-                                                <option value={'world'}>Delete only World data</option>
-                                                <option value={'player'}>Delete only Player data</option>
-                                            </FormikField>
-                                        </FormikFieldWrapper>
-                                    </div>
+                        }
+                        {values.action === 'power' &&
+                            <div>
+                                <Label>Payload</Label>
+                                <FormikFieldWrapper name={'payload'}>
+                                    <FormikField as={Select} name={'payload'}>
+                                        <option value={'start'}>Start the server</option>
+                                        <option value={'restart'}>Restart the server</option>
+                                        <option value={'stop'}>Stop the server</option>
+                                        <option value={'kill'}>Terminate the server</option>
+                                    </FormikField>
+                                </FormikFieldWrapper>
+                            </div>
+                        }
+                        {values.action === 'backup' &&
+                            <div>
+                                <Label>Ignored Files</Label>
+                                <FormikFieldWrapper
+                                    name={'payload'}
+                                    description={'Optional. Include the files and folders to be excluded in this backup. By default, the contents of your .pteroignore file will be used. If you have reached your backup limit, the oldest backup will be rotated.'}
+                                >
+                                    <FormikField as={Textarea} name={'payload'} rows={6}/>
+                                </FormikFieldWrapper>
+                            </div>
+                        }
+                        {values.action === 'wipe' &&
+                            <div>
+                                <Label>Payload</Label>
+                                <FormikFieldWrapper
+                                    name={'payload'}
+                                    description={'List of paths to empty while wiping.'}
+                                >
+                                    <FormikField as={Textarea} name={'payload'} rows={6}/>
+                                </FormikFieldWrapper>
+                            </div>
                         }
                     </div>
                     <div css={tw`mt-6 bg-neutral-700 border border-neutral-800 shadow-inner p-4 rounded`}>
