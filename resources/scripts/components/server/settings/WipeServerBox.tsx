@@ -86,6 +86,10 @@ export default () => {
                     }}
                     rows={6}
                 />
+                <p css={tw`text-sm`}>
+                    If you want this field to be filled automatically, you should add a variable called <b>WIPE_PATH_LIST</b> in your egg and set it to your default path list.
+                    Check the Rust default one if needed.
+                </p>
             </div>
             <div css={tw`mt-6 text-right`}>
                 <Button
