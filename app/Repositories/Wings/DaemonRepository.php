@@ -4,6 +4,7 @@ namespace Pterodactyl\Repositories\Wings;
 
 use GuzzleHttp\Client;
 use Pterodactyl\Models\Node;
+use Pterodactyl\Models\Task;
 use Webmozart\Assert\Assert;
 use Pterodactyl\Models\Server;
 use Illuminate\Contracts\Foundation\Application;
@@ -24,6 +25,11 @@ abstract class DaemonRepository
      * @var \Pterodactyl\Models\Node|null
      */
     protected $node;
+
+    /**
+     * @var \Pterodactyl\Models\Task|null
+     */
+    protected $task;
 
     /**
      * BaseWingsRepository constructor.
@@ -55,6 +61,13 @@ abstract class DaemonRepository
     public function setNode(Node $node)
     {
         $this->node = $node;
+
+        return $this;
+    }
+
+    public function setTask(Task $task)
+    {
+        $this->task = $task;
 
         return $this;
     }

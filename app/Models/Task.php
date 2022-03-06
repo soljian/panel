@@ -37,6 +37,7 @@ class Task extends Model
     public const ACTION_POWER = 'power';
     public const ACTION_COMMAND = 'command';
     public const ACTION_BACKUP = 'backup';
+    public const ACTION_WIPE = 'wipe';
 
     /**
      * The table associated with the model.

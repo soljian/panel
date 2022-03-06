@@ -14,6 +14,7 @@ import ServerContentBlock from '@/components/elements/ServerContentBlock';
 import isEqual from 'react-fast-compare';
 import CopyOnClick from '@/components/elements/CopyOnClick';
 import { formatIp } from '@/helpers';
+import WipeServerBox from '@/components/server/settings/WipeServerBox';
 
 export default () => {
     const username = useStoreState(state => state.user.data!.username);
@@ -21,6 +22,7 @@ export default () => {
     const uuid = ServerContext.useStoreState(state => state.server.data!.uuid);
     const node = ServerContext.useStoreState(state => state.server.data!.node);
     const sftp = ServerContext.useStoreState(state => state.server.data!.sftpDetails, isEqual);
+    const eggFeatures = ServerContext.useStoreState(state => state.server.data!.eggFeatures, isEqual);
 
     return (
         <ServerContentBlock title={'Settings'}>
@@ -88,7 +90,14 @@ export default () => {
                         </div>
                     </Can>
                     <Can action={'settings.reinstall'}>
-                        <ReinstallServerBox/>
+                        <div css={tw`mb-6 md:mb-10`}>
+                            <ReinstallServerBox/>
+                        </div>
+                    </Can>
+                    <Can action={'settings.reinstall'}>
+                        <div css={tw`mb-6 md:mb-10`}>
+                            <WipeServerBox/>
+                        </div>
                     </Can>
                 </div>
             </div>

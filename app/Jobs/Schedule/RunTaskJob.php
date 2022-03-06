@@ -11,10 +11,13 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\DispatchesJobs;
+use Pterodactyl\Repositories\Wings\DaemonFileRepository;
 use Pterodactyl\Services\Backups\InitiateBackupService;
 use Pterodactyl\Repositories\Wings\DaemonPowerRepository;
 use Pterodactyl\Repositories\Wings\DaemonCommandRepository;
 use Pterodactyl\Exceptions\Http\Connection\DaemonConnectionException;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 
 class RunTaskJob extends Job implements ShouldQueue
 {
@@ -50,7 +53,8 @@ class RunTaskJob extends Job implements ShouldQueue
     public function handle(
         DaemonCommandRepository $commandRepository,
         InitiateBackupService $backupService,
-        DaemonPowerRepository $powerRepository
+        DaemonPowerRepository $powerRepository,
+        DaemonFileRepository $fileRepository
     ) {
         // Do not process a task that is not set to active, unless it's been manually triggered.
         if (!$this->task->schedule->is_active && !$this->manualRun) {
@@ -72,6 +76,9 @@ class RunTaskJob extends Job implements ShouldQueue
                     break;
                 case Task::ACTION_BACKUP:
                     $backupService->setIgnoredFiles(explode(PHP_EOL, $this->task->payload))->handle($server, null, true);
+                    break;
+                case Task::ACTION_WIPE:
+                    $fileRepository->wipeServer($server, $this->task, explode(PHP_EOL, $this->task->payload));
                     break;
                 default:
                     throw new InvalidArgumentException('Invalid task action provided: ' . $this->task->action);

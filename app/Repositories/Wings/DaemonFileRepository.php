@@ -2,6 +2,8 @@
 
 namespace Pterodactyl\Repositories\Wings;
 
+use Illuminate\Support\Str;
+use Pterodactyl\Models\Task;
 use Webmozart\Assert\Assert;
 use Pterodactyl\Models\Server;
 use Psr\Http\Message\ResponseInterface;
@@ -280,6 +282,44 @@ class DaemonFileRepository extends DaemonRepository
             );
         } catch (TransferException $exception) {
             throw new DaemonConnectionException($exception);
+        }
+    }
+
+    const folderRgx = '/^(\/\w+)+$/';
+    const fileRgx = '/\/(\*|\w+)(\.[a-zA-Z0-9_-]+)+$/';
+    const fileWildcardRgx = '/\*(\.[a-zA-Z0-9_-]+)+$/';
+    const fileSpecificRgx = '/\w+(\.[a-zA-Z0-9_-]+)+$/';
+
+    public function wipeServer(Server $server, Task $task, array $paths) {
+        $this->setTask($task);
+
+        foreach($paths as $path) {
+            if (preg_match(self::folderRgx, $path)) {
+                $filesToDelete = collect([]);
+                collect($this->setServer($server)->getDirectory($path))->each(function ($item, $key) use ($filesToDelete) {
+                    $filesToDelete->push($item['name']);
+                });
+                if ($filesToDelete->isNotEmpty()) {
+                    $this->setServer($server)->deleteFiles($path, $filesToDelete->toArray());
+                }
+            } elseif (preg_match(self::fileRgx, $path)) {
+                $index = strrpos($path, '/', -1);
+                $folderPath = substr($path, 0, $index);
+                $fileName = substr($path, $index + 1);
+
+                $filesToDelete = collect([]);
+                collect($this->setServer($server)->getDirectory($folderPath))->each(function ($item, $key) use ($filesToDelete, $fileName) {
+                    if (preg_match(self::fileSpecificRgx, $fileName) && $fileName == $item['name']) {
+                        $filesToDelete->push($item['name']);
+                    }
+                    if (preg_match(self::fileWildcardRgx, $fileName) && str_ends_with($item['name'], substr($fileName, strrpos($fileName, '*', -1) + 1))) {
+                        $filesToDelete->push($item['name']);
+                    }
+                });
+                if ($filesToDelete->isNotEmpty()) {
+                    $this->setServer($server)->deleteFiles($folderPath, $filesToDelete->toArray());
+                }
+            }
         }
     }
 }
